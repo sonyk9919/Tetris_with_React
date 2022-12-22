@@ -1,0 +1,12 @@
+{
+  "files": {
+    "main.js": "/sonyk9919/Tetris_with_React/static/js/main.3c58f867.js",
+    "static/js/787.e23f11b8.chunk.js": "/sonyk9919/Tetris_with_React/static/js/787.e23f11b8.chunk.js",
+    "index.html": "/sonyk9919/Tetris_with_React/index.html",
+    "main.3c58f867.js.map": "/sonyk9919/Tetris_with_React/static/js/main.3c58f867.js.map",
+    "787.e23f11b8.chunk.js.map": "/sonyk9919/Tetris_with_React/static/js/787.e23f11b8.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.3c58f867.js"
+  ]
+}
