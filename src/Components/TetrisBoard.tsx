@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
 const TetrisWrapper = styled.div`
@@ -11,8 +12,41 @@ const TetrisWrapper = styled.div`
   .tree {
     background-color: #71e471;
   }
+  .box {
+    background-color: #f7f766;
+  }
+  .pipe {
+    background-color: #8f8ffd;
+  }
+  .leftHook {
+    background-color: #ff9494;
+  }
+  .rightHook {
+    background-color: #7df1f1;
+  }
 `;
 
+const GameOver = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const ReLoad = styled.button`
+  width: 110px;
+  height: 50px;
+  border-radius: 5px;
+  font-size: 18px;
+  font-weight: 600;
+  background-color: #fab2b2;
+  cursor: pointer;
+`;
 const TetrisBlock = styled.div`
   border: 1px solid black;
 `;
@@ -44,49 +78,319 @@ const initialBlock = {
       [1, 0],
     ],
   ],
+  box: [
+    [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [1, 1],
+    ],
+
+    [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [1, 1],
+    ],
+
+    [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [1, 1],
+    ],
+
+    [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [1, 1],
+    ],
+  ],
+  pipe: [
+    [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 0],
+    ],
+    [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [0, 3],
+    ],
+    [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 0],
+    ],
+    [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [0, 3],
+    ],
+  ],
+  rightHook: [
+    [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [2, 1],
+    ],
+    [
+      [1, 0],
+      [1, 1],
+      [1, 2],
+      [0, 2],
+    ],
+    [
+      [0, 0],
+      [0, 1],
+      [1, 1],
+      [2, 1],
+    ],
+    [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [1, 2],
+    ],
+  ],
+  leftHook: [
+    [
+      [0, 1],
+      [1, 1],
+      [2, 1],
+      [2, 0],
+    ],
+    [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [1, 2],
+    ],
+    [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [2, 0],
+    ],
+    [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [1, 2],
+    ],
+  ],
 };
 
 interface INowBlock {
-  type: "tree";
+  type: "tree" | "box" | "pipe" | "leftHook" | "rightHook";
   direction: number;
   top: number;
   left: number;
 }
 
-const nowBlock: INowBlock = {
-  type: "tree",
-  direction: 0,
-  top: 0,
-  left: 3,
+type ITypeAndNumber = { type: string; Number: number };
+interface ITetrisMap {
+  map: ITypeAndNumber[];
+}
+
+const savedMap: ITetrisMap = {
+  map: [],
 };
 
 const TetrisBoard = () => {
-  const renderNode = (prev: number[]) => {
-    const blocks = initialBlock[nowBlock.type][nowBlock.direction];
-    const render = blocks.map((block) => {
-      const x = block[0] + nowBlock.top;
-      const y = block[1] + nowBlock.left;
-      return x * 10 + y;
-    });
-
-    const preRightCheck = prev.find((item) => item % 10 === 9);
-    const nowRightCheck = render.find((item) => item % 10 === 0);
-
-    if (preRightCheck && nowRightCheck) {
-      nowBlock.left -= 1;
-      return prev;
-    }
-
-    const preLeftCheck = prev.find((item) => item % 10 === 0);
-    const nowLeftCheck = render.find((item) => item % 10 === 9);
-
-    if (preLeftCheck && nowLeftCheck) {
-      nowBlock.left += 1;
-      return prev;
-    }
-
-    return render;
+  const getRandomBlock = () => {
+    const block = [
+      "tree" as const,
+      "box" as const,
+      "pipe" as const,
+      "leftHook" as const,
+      "rightHook" as const,
+    ];
+    return block[Math.floor(Math.random() * block.length)];
   };
+
+  const nowBlock = useRef<INowBlock>({
+    type: getRandomBlock(),
+    direction: 0,
+    top: 0,
+    left: 3,
+  });
+
+  const isContact = useCallback(
+    (render: number[]) => {
+      for (let i = 0; i < savedMap.map.length; i++) {
+        if (render.find((item) => item === savedMap.map[i].Number)) {
+          return true;
+        }
+      }
+
+      if (render.find((item) => Math.floor(item / 10) > 19)) {
+        nowBlock.current.top -= 1;
+        return true;
+      }
+
+      return false;
+    },
+    [nowBlock]
+  );
+
+  const isActive = useCallback(
+    (render: number[], prev: number[]) => {
+      let count = 0;
+      let minus = 0;
+
+      for (let i = 0; i < prev.length; i++) {
+        for (let j = 0; j < render.length; j++) {
+          minus = render[i] - prev[i];
+          if (minus === -1 || minus === 9) {
+            count -= 1;
+          } else if (minus === 1 || minus === 11) {
+            count += 1;
+          }
+        }
+      }
+
+      if (count === -16) {
+        if (isContact(render)) {
+          nowBlock.current.left += 1;
+          return false;
+        }
+      } else if (count === 16) {
+        if (isContact(render)) {
+          nowBlock.current.left -= 1;
+          return false;
+        }
+      }
+
+      const preRightCheck = prev.find((item) => item % 10 === 9);
+      const nowRightCheck = render.find((item) => item % 10 === 0);
+
+      if (preRightCheck && nowRightCheck) {
+        nowBlock.current.left -= 1;
+        return false;
+      }
+
+      const preLeftCheck = prev.find((item) => item % 10 === 0);
+      const nowLeftCheck = render.find((item) => item % 10 === 9);
+
+      if (preLeftCheck && nowLeftCheck) {
+        nowBlock.current.left += 1;
+        return false;
+      }
+
+      return true;
+    },
+    [nowBlock, isContact]
+  );
+
+  const removeFloor = () => {
+    const floor = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    for (let i = 0; i < savedMap.map.length; i++) {
+      floor[Math.floor(savedMap.map[i].Number / 10)] += 1;
+    }
+
+    const complate: number[] = [];
+    for (let i = 0; i < floor.length; i++) {
+      if (floor[i] === 10) {
+        complate.push(i);
+      }
+    }
+
+    if (complate.length === 0) {
+      return;
+    }
+
+    let tempMap: ITetrisMap = { map: [] };
+
+    for (let i = 0; i < complate.length; i++) {
+      tempMap.map = savedMap.map.filter(
+        (item) => Math.floor(item.Number / 10) !== complate[i]
+      );
+    }
+
+    for (let i = 0; i < tempMap.map.length; i++) {
+      if (
+        Math.floor(tempMap.map[i].Number / 10) < complate[complate.length - 1]
+      ) {
+        tempMap.map[i].Number += 10 * complate.length;
+      }
+    }
+
+    if (complate.length > 0) {
+      setScore((prev) => prev + complate.length);
+    }
+
+    savedMap.map = tempMap.map;
+    return;
+  };
+  const renderNode = useCallback(
+    (prev: number[]): number[] => {
+      if (!gamePlay.current) {
+        return [];
+      }
+      const blocks =
+        initialBlock[nowBlock.current.type][nowBlock.current.direction];
+      const render = blocks.map((block) => {
+        const x = block[0] + nowBlock.current.top;
+        const y = block[1] + nowBlock.current.left;
+        return x * 10 + y;
+      });
+
+      if (!isActive(render, prev)) {
+        return prev;
+      }
+
+      if (isContact(render)) {
+        const contactMap = render.map((item) => {
+          const addMap: ITypeAndNumber = {
+            type: nowBlock.current.type,
+            Number: item - 10,
+          };
+          return addMap;
+        });
+
+        for (let i = 0; i < contactMap.length; i++) {
+          if (contactMap[i].Number >= 0) {
+            savedMap.map.push(contactMap[i]);
+          } else {
+            gamePlay.current = false;
+            setGameOver((prev) => true);
+          }
+        }
+        removeFloor();
+        nowBlock.current = {
+          type: getRandomBlock(),
+          direction: 0,
+          top: 0,
+          left: 3,
+        };
+        console.log(savedMap);
+        return renderNode([]);
+      }
+      return render;
+    },
+    [isActive, isContact]
+  );
+
+  const returnClassName = (render: number[], value: number) => {
+    if (render.find((item) => item === value) !== undefined) {
+      return nowBlock.current.type;
+    }
+
+    for (let i = 0; i < savedMap.map.length; i++) {
+      if (savedMap.map[i].Number === value) {
+        return savedMap.map[i].type;
+      }
+    }
+    return "";
+  };
+
   const Init = () => {
     const arr1 = [];
     for (let i = 0; i < 20; i++) {
@@ -100,53 +404,78 @@ const TetrisBoard = () => {
       item1.map((item2) => (
         <TetrisBlock
           key={item2}
-          className={
-            render.find((item3) => item3 === item2) !== undefined
-              ? nowBlock.type
-              : ""
-          }
-        >
-          {item2}
-        </TetrisBlock>
+          className={returnClassName(render, item2)}
+        ></TetrisBlock>
       ))
     );
   };
-  const onKeyDown = (e: KeyboardEvent) => {
-    const { key } = e;
-    if (key === "ArrowLeft") {
-      nowBlock.left -= 1;
-      setRender((prev) => renderNode(prev));
-    } else if (key === "ArrowRight") {
-      nowBlock.left += 1;
-      setRender((prev) => renderNode(prev));
-    } else if (key === "Control") {
-      nowBlock.direction += 1;
-      if (nowBlock.direction > 3) {
-        nowBlock.direction = 0;
+  const [render, setRender] = useState<number[]>([]);
+  const [score, setScore] = useState<number>(0);
+  const [gameOver, setGameOver] = useState<boolean>(false);
+  const gamePlay = useRef(true);
+
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const { key } = e;
+      if (key === "ArrowLeft") {
+        nowBlock.current.left -= 1;
+        setRender((prev) => renderNode(prev));
+      } else if (key === "ArrowRight") {
+        nowBlock.current.left += 1;
+        setRender((prev) => renderNode(prev));
+      } else if (key === "Control") {
+        if (nowBlock.current.type === "pipe" && nowBlock.current.left > 6) {
+          nowBlock.current.left -= 4 - (10 - nowBlock.current.left);
+        }
+        nowBlock.current.direction += 1;
+        if (nowBlock.current.direction > 3) {
+          nowBlock.current.direction = 0;
+        }
+        setRender((prev) => renderNode(prev));
+      } else if (key === " ") {
+        setTimeout(() => {
+          nowBlock.current.top += 1;
+        }, 0);
+        setRender((prev) => renderNode(prev));
       }
-      setRender((prev) => renderNode(prev));
-    }
-  };
-  const [render, setRender] = useState<number[]>(renderNode([]));
+    },
+    [nowBlock, renderNode]
+  );
+
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [render]);
+  }, [onKeyDown]);
 
   useEffect(() => {
     setInterval(() => {
-      if (nowBlock.top === 18) {
-        nowBlock.top = -3;
+      if (gamePlay.current) {
         setRender((prev) => renderNode(prev));
+        setTimeout(() => {
+          nowBlock.current.top += 1;
+        }, 0);
       }
-      nowBlock.top += 1;
-      setRender((prev) => renderNode(prev));
     }, 1000);
-  }, []);
+  }, [setRender, renderNode]);
 
-  return <TetrisWrapper>{Init()}</TetrisWrapper>;
+  return (
+    <>
+      <TetrisWrapper>{Init()}</TetrisWrapper>
+      {gameOver && (
+        <GameOver>
+          <ReLoad
+            onClick={() => {
+              window.location.reload();
+            }}
+          >
+            다시하기
+          </ReLoad>
+        </GameOver>
+      )}
+    </>
+  );
 };
 
 export default TetrisBoard;
