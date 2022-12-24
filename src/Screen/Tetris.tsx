@@ -4,19 +4,37 @@ import { Button } from "../Components/Button/GameButton";
 import { FullScreen } from "../Components/Modal/FullScreen";
 import TetrisBoard from "../Components/TetrisBoard";
 import sound from "../resource/BGM/BGM.mp3";
+import backgroundImg from "../resource/image/mrhyo.jpg";
 
-const Wrapper = styled.div`
+interface WrapperImg {
+  bgURL: string;
+}
+
+const Wrapper = styled.div<WrapperImg>`
   width: 100vw;
   height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  background-image: url(${(props) => props.bgURL});
+  background-repeat: no-repeat;
+  background-size: 100vw 100vh;
   .guide {
+    border: 5px solid black;
+    padding: 5px 10px;
+    background-color: white;
     margin-bottom: 1rem;
-    padding-right: 300px;
+    margin-right: 300px;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 16px;
+    color: black;
+    p {
+      color: black;
+      font-size: 18px;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
   }
 `;
 
@@ -29,13 +47,14 @@ const Tetris = () => {
   };
 
   return (
-    <Wrapper>
+    <Wrapper bgURL={backgroundImg}>
       {!gameStart && (
         <FullScreen>
           <Button onClick={onClick}>START</Button>
         </FullScreen>
       )}
       <div className="guide">
+        <p>조작법</p>
         블록 이동: 좌우 방향키
         <br />
         방향전환: Ctrl

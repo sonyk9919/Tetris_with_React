@@ -11,7 +11,8 @@ const Wrapper = styled.div`
   justify-content: flex-start;
   align-items: flex-start;
   border: 5px solid purple;
-  box-shadow: 10px 20px 50px black;
+  box-shadow: 20px 40px 100px black;
+  background-color: white;
 `;
 
 const Score = styled.div`
@@ -19,7 +20,7 @@ const Score = styled.div`
   padding: 1rem 0;
   width: 100%;
   font-size: 36px;
-  font-weight: 400;
+  font-weight: 1000;
   text-align: center;
   border: 5px solid purple;
   font-family: "Roboto", sans-serif;
@@ -156,9 +157,9 @@ const initialBlock = {
     ],
     [
       [0, 0],
+      [1, 0],
       [0, 1],
       [0, 2],
-      [1, 2],
     ],
   ],
   leftHook: [
