@@ -1,12 +1,35 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { Button } from "./Button/GameButton";
+import { FullScreen } from "./Modal/FullScreen";
 
-const TetrisWrapper = styled.div`
-  width: 600px;
-  height: 1200px;
+const Wrapper = styled.div`
+  width: 500px;
+  height: 1000px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
   border: 5px solid purple;
   box-shadow: 10px 20px 50px black;
+`;
+
+const Score = styled.div`
+  @import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
+  padding: 1rem 0;
+  width: 100%;
+  font-size: 36px;
+  font-weight: 400;
+  text-align: center;
+  border: 5px solid purple;
+  font-family: "Roboto", sans-serif;
+`;
+
+const TetrisWrapper = styled.div`
+  width: 100%;
+  height: 1000px;
+  border: 5px solid purple;
+
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   .tree {
@@ -26,27 +49,6 @@ const TetrisWrapper = styled.div`
   }
 `;
 
-const GameOver = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-const ReLoad = styled.button`
-  width: 110px;
-  height: 50px;
-  border-radius: 5px;
-  font-size: 18px;
-  font-weight: 600;
-  background-color: #fab2b2;
-  cursor: pointer;
-`;
 const TetrisBlock = styled.div`
   border: 1px solid black;
 `;
@@ -203,7 +205,12 @@ const savedMap: ITetrisMap = {
   map: [],
 };
 
-const TetrisBoard = () => {
+interface IProps {
+  gameStart: boolean;
+  audioElement: HTMLAudioElement;
+}
+
+const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
   const getRandomBlock = () => {
     const block = [
       "tree" as const,
@@ -289,7 +296,10 @@ const TetrisBoard = () => {
     [nowBlock, isContact]
   );
 
-  const removeFloor = () => {
+  const [gameOver, setGameOver] = useState<boolean>(false);
+  const [score, setScore] = useState<number>(0);
+
+  const removeFloor = useCallback(() => {
     const floor = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     for (let i = 0; i < savedMap.map.length; i++) {
       floor[Math.floor(savedMap.map[i].Number / 10)] += 1;
@@ -328,7 +338,8 @@ const TetrisBoard = () => {
 
     savedMap.map = tempMap.map;
     return;
-  };
+  }, [setScore]);
+
   const renderNode = useCallback(
     (prev: number[]): number[] => {
       if (!gamePlay.current) {
@@ -375,7 +386,7 @@ const TetrisBoard = () => {
       }
       return render;
     },
-    [isActive, isContact]
+    [removeFloor, setGameOver, isActive, isContact]
   );
 
   const returnClassName = (render: number[], value: number) => {
@@ -410,9 +421,7 @@ const TetrisBoard = () => {
     );
   };
   const [render, setRender] = useState<number[]>([]);
-  const [score, setScore] = useState<number>(0);
-  const [gameOver, setGameOver] = useState<boolean>(false);
-  const gamePlay = useRef(true);
+  const gamePlay = useRef(false);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -450,7 +459,7 @@ const TetrisBoard = () => {
   }, [onKeyDown]);
 
   useEffect(() => {
-    setInterval(() => {
+    const interval = setInterval(() => {
       if (gamePlay.current) {
         setRender((prev) => renderNode(prev));
         setTimeout(() => {
@@ -458,22 +467,42 @@ const TetrisBoard = () => {
         }, 0);
       }
     }, 1000);
+    return () => {
+      clearInterval(interval);
+    };
   }, [setRender, renderNode]);
 
+  useEffect(() => {
+    if (gameStart) {
+      gamePlay.current = true;
+      audioElement.volume = 0.3;
+      audioElement.loop = true;
+      audioElement.play();
+    }
+  }, [gameStart, audioElement]);
+
+  useEffect(() => {
+    if (gameOver) {
+      audioElement.pause();
+    }
+  }, [gameOver, audioElement]);
   return (
     <>
-      <TetrisWrapper>{Init()}</TetrisWrapper>
       {gameOver && (
-        <GameOver>
-          <ReLoad
+        <FullScreen>
+          <Button
             onClick={() => {
               window.location.reload();
             }}
           >
             다시하기
-          </ReLoad>
-        </GameOver>
+          </Button>
+        </FullScreen>
       )}
+      <Wrapper>
+        <Score>Score: {score}</Score>
+        <TetrisWrapper>{Init()}</TetrisWrapper>
+      </Wrapper>
     </>
   );
 };
