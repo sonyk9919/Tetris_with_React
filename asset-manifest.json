@@ -1,12 +1,13 @@
 {
   "files": {
-    "main.js": "/Tetris_with_React/static/js/main.5690e868.js",
+    "main.js": "/Tetris_with_React/static/js/main.b35a5e36.js",
     "static/js/787.e23f11b8.chunk.js": "/Tetris_with_React/static/js/787.e23f11b8.chunk.js",
+    "static/media/BGM.mp3": "/Tetris_with_React/static/media/BGM.c28b875795767ff96116.mp3",
     "index.html": "/Tetris_with_React/index.html",
-    "main.5690e868.js.map": "/Tetris_with_React/static/js/main.5690e868.js.map",
+    "main.b35a5e36.js.map": "/Tetris_with_React/static/js/main.b35a5e36.js.map",
     "787.e23f11b8.chunk.js.map": "/Tetris_with_React/static/js/787.e23f11b8.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.5690e868.js"
+    "static/js/main.b35a5e36.js"
   ]
 }
