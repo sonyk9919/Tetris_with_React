@@ -5,7 +5,8 @@ import { FullScreen } from "../Components/Modal/FullScreen";
 import TetrisBoard from "../Components/TetrisBoard";
 import sound from "../resource/BGM/BGM.mp3";
 import backgroundImg from "../resource/image/mrhyo.jpg";
-
+import icon from "../resource/image/icon.png";
+import Helmet from "react-helmet";
 interface WrapperImg {
   bgURL: string;
 }
@@ -48,6 +49,10 @@ const Tetris = () => {
 
   return (
     <Wrapper bgURL={backgroundImg}>
+      <Helmet>
+        <link rel="shortcut icon" href={icon} type="image/x-icon" />
+        <title>Tetris</title>
+      </Helmet>
       {!gameStart && (
         <FullScreen>
           <Button onClick={onClick}>START</Button>
