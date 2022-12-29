@@ -7,6 +7,7 @@ import sound from "../resource/BGM/BGM.mp3";
 import backgroundImg from "../resource/image/mrhyo.jpg";
 import icon from "../resource/image/icon.png";
 import Helmet from "react-helmet";
+
 interface WrapperImg {
   bgURL: string;
 }

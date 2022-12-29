@@ -222,12 +222,11 @@ const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
     ];
     return block[Math.floor(Math.random() * block.length)];
   };
-
   const nowBlock = useRef<INowBlock>({
     type: getRandomBlock(),
     direction: 0,
     top: 0,
-    left: 3,
+    left: 4,
   });
 
   const isContact = useCallback(
@@ -239,7 +238,7 @@ const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
       }
 
       if (render.find((item) => Math.floor(item / 10) > 19)) {
-        nowBlock.current.top -= 1;
+        console.log(render);
         return true;
       }
 
@@ -267,11 +266,17 @@ const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
       if (count === -16) {
         if (isContact(render)) {
           nowBlock.current.left += 1;
+          if (minus === 9) {
+            nowBlock.current.top -= 1;
+          }
           return false;
         }
       } else if (count === 16) {
         if (isContact(render)) {
           nowBlock.current.left -= 1;
+          if (minus === 1) {
+            nowBlock.current.top -= 1;
+          }
           return false;
         }
       }
@@ -292,6 +297,32 @@ const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
         return false;
       }
 
+      if (onChange.current) {
+        if (
+          render.find((item) => item % 10 === 0) &&
+          render.find((item) => item % 10 === 9)
+        ) {
+          nowBlock.current.direction -= 1;
+          if (nowBlock.current.direction < 0) {
+            nowBlock.current.direction = 0;
+          }
+          return false;
+        }
+      }
+
+      if (onChange.current) {
+        onChange.current = false;
+        for (let i = 0; i < savedMap.map.length; i++) {
+          if (render.find((item) => item === savedMap.map[i].Number)) {
+            nowBlock.current.direction -= 1;
+            if (nowBlock.current.direction < 0) {
+              nowBlock.current.direction = 0;
+            }
+            return false;
+          }
+        }
+      }
+
       return true;
     },
     [nowBlock, isContact]
@@ -303,12 +334,14 @@ const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
   const removeFloor = useCallback(() => {
     const floor = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     for (let i = 0; i < savedMap.map.length; i++) {
-      floor[Math.floor(savedMap.map[i].Number / 10)] += 1;
+      if (Math.floor(savedMap.map[i].Number / 10) <= 19) {
+        floor[Math.floor(savedMap.map[i].Number / 10)] += 1;
+      }
     }
-
     const complate: number[] = [];
+
     for (let i = 0; i < floor.length; i++) {
-      if (floor[i] === 10) {
+      if (floor[i] >= 10) {
         complate.push(i);
       }
     }
@@ -317,10 +350,10 @@ const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
       return;
     }
 
-    let tempMap: ITetrisMap = { map: [] };
+    let tempMap: ITetrisMap = savedMap;
 
     for (let i = 0; i < complate.length; i++) {
-      tempMap.map = savedMap.map.filter(
+      tempMap.map = tempMap.map.filter(
         (item) => Math.floor(item.Number / 10) !== complate[i]
       );
     }
@@ -379,10 +412,9 @@ const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
         nowBlock.current = {
           type: getRandomBlock(),
           direction: 0,
-          top: 0,
-          left: 3,
+          top: -4,
+          left: 4,
         };
-        console.log(savedMap);
         return renderNode([]);
       }
       return render;
@@ -421,9 +453,10 @@ const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
       ))
     );
   };
+
   const [render, setRender] = useState<number[]>([]);
   const gamePlay = useRef(false);
-
+  const onChange = useRef(false);
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
       const { key } = e;
@@ -434,9 +467,7 @@ const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
         nowBlock.current.left += 1;
         setRender((prev) => renderNode(prev));
       } else if (key === "Control") {
-        if (nowBlock.current.type === "pipe" && nowBlock.current.left > 6) {
-          nowBlock.current.left -= 4 - (10 - nowBlock.current.left);
-        }
+        onChange.current = true;
         nowBlock.current.direction += 1;
         if (nowBlock.current.direction > 3) {
           nowBlock.current.direction = 0;
@@ -487,6 +518,7 @@ const TetrisBoard = ({ gameStart, audioElement }: IProps) => {
       audioElement.pause();
     }
   }, [gameOver, audioElement]);
+
   return (
     <>
       {gameOver && (
