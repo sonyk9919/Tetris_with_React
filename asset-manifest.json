@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.js": "/Tetris_with_React/static/js/main.971c4782.js",
+    "main.js": "/Tetris_with_React/static/js/main.1a016ee1.js",
     "static/js/787.e23f11b8.chunk.js": "/Tetris_with_React/static/js/787.e23f11b8.chunk.js",
     "static/media/BGM.mp3": "/Tetris_with_React/static/media/BGM.c28b875795767ff96116.mp3",
     "static/media/mrhyo.jpg": "/Tetris_with_React/static/media/mrhyo.1e935eac2049f0c86127.jpg",
     "static/media/icon.png": "/Tetris_with_React/static/media/icon.4be07b55ff57607fc78b.png",
     "index.html": "/Tetris_with_React/index.html",
-    "main.971c4782.js.map": "/Tetris_with_React/static/js/main.971c4782.js.map",
+    "main.1a016ee1.js.map": "/Tetris_with_React/static/js/main.1a016ee1.js.map",
     "787.e23f11b8.chunk.js.map": "/Tetris_with_React/static/js/787.e23f11b8.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.971c4782.js"
+    "static/js/main.1a016ee1.js"
   ]
 }
